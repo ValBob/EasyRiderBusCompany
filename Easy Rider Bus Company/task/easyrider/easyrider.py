@@ -1,17 +1,13 @@
 # Write your awesome code here
 import json
-
-
-class Char(str):
-    pass
-
+import re
 
 data_structure = {
         "bus_id": (int, False),
         "stop_id": (int, False),
         "stop_name": (str, False),
         "next_stop": (int, False),
-        "stop_type": (Char, True),
+        "stop_type": (str, True),
         "a_time": (str, False)
     }
 
@@ -28,20 +24,21 @@ json_in = json.loads(input())
 
 for row in json_in:
     for key in row:
-        if key == "stop_type" and isinstance(row[key], str):
-            if len(row[key]) <= 1:
-                row[key] = Char(row[key])
-        if row[key] != '' or data_structure[key][1]:
-            if isinstance(row[key], data_structure[key][0]):
-                continue
-        err_dict[key] += 1
+        if key == "stop_name" and not bool(re.match(r'[A-Z][\w ]* (Road|Avenue|Boulevard|Street)$', row[key])):
+            err_dict[key] += 1
+        if key == "stop_type" and not bool(re.match(r'[SFO]?$', row[key])):
+            err_dict[key] += 1
+        if key == "a_time" and not bool(re.match(r'([01]\d|2[0-3]):[0-5]\d$', row[key])):
+            err_dict[key] += 1
+
 errors_n = 0
 for value in err_dict.values():
     errors_n += value
 
-print(f'Type and required field validation: {errors_n} errors')
+print(f'Format validation: {errors_n} errors')
 for key, value in err_dict.items():
-    print(f'{key}: {value}')
+    if key in ["stop_name", "stop_type", "a_time"]:
+        print(f'{key}: {value}')
 
 '''
 [
