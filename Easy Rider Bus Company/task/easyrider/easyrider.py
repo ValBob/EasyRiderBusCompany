@@ -1,37 +1,36 @@
 # Write your awesome code here
 import json
 
+
+def right_sequence(former, later):
+    t1 = [int(i) for i in former.split(':')]
+    t2 = [int(i) for i in later.split(':')]
+    if t2[0] > t1[0]:
+        return True
+    elif t2[0] == t1[0]:
+        if t2[1] > t1[1]:
+            return True
+    return False
+
+
 json_in = json.loads(input())
 
-routes = {}
+print('Arrival time test:')
+same_bus = 0
+time_before = ''
+switch_flag = True  # To skip remained bus line stops if wrong time detected
+ok = True  # Flag for no wrong times detected
 
 for row in json_in:
-    if not routes.get(row['bus_id']):
-        routes[row['bus_id']] = [row['stop_type']]
+    if row['bus_id'] == same_bus:
+        if switch_flag:
+            if not right_sequence(time_before, row['a_time']):
+                print(f'bus_id line {row["bus_id"]}: wrong time on station {row["stop_name"]}')
+                switch_flag = False
+                ok = False
     else:
-        routes[row['bus_id']].append(row['stop_type'])
-
-for bus_id in routes:
-    if not ('S' in routes[bus_id] and 'F' in routes[bus_id]):
-        print(f'There is no start or stop for the line: {bus_id}.')
-        break
-else:
-    starts = set()
-    finishes = set()
-    stops = {}
-    for row in json_in:
-        if row['stop_type'] == 'S':
-            starts.add(row['stop_name'])
-        elif row['stop_type'] == 'F':
-            finishes.add(row['stop_name'])
-
-        if not stops.get(row['stop_name']):
-            stops[row['stop_name']] = [row['bus_id']]
-        else:
-            stops[row['stop_name']].append(row['bus_id'])
-    transfers = [k for k, v in stops.items() if len(v) > 1]
-    print(f'Start stops: {len(starts)} {sorted([*starts])}')
-    print(f'Transfer stops: {len(transfers)} {sorted(transfers)}')
-    print(f'Finish stops: {len(finishes)} {sorted([*finishes])}')
-
-
+        switch_flag = True
+    same_bus = row['bus_id']
+    time_before = row['a_time']
+if ok:
+    print('OK')
